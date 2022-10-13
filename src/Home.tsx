@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import * as anchor from "@project-serum/anchor";
 
 import styled from "styled-components";
-import { Container, Snackbar } from "@material-ui/core";
+import { Container, Snackbar, TextField, Button } from "@material-ui/core";
 import Paper from "@material-ui/core/Paper";
 import Alert from "@material-ui/lab/Alert";
 import { PublicKey } from "@solana/web3.js";
@@ -20,6 +20,8 @@ import { Header } from "./Header";
 import { MintButton } from "./MintButton";
 import { GatewayProvider } from "@civic/solana-gateway-react";
 import { CrossmintPayButton } from "@crossmint/client-sdk-react-ui";
+
+
 
 const ConnectButton = styled(WalletDialogButton)`
   width: 100%;
@@ -50,10 +52,69 @@ const Home = (props: HomeProps) => {
     message: "",
     severity: undefined,
   });
-
+  const [userIdText, setUserIdText] = useState('');
+  const mockwallets=[
+    {
+      name:9
+    },
+    {
+      name:78778
+    },
+    {
+      name:7777
+    },
+    {
+      name:78
+    },
+  ]
+  const handlecontentfetch = (address: Number)=>{
+    alert(address)
+  }
+console.log("crossmintid----------", process.env.REACT_APP_CROSSMINT_ID)
   const rpcUrl = props.rpcHost;
   const wallet = useWallet();
+  console.log('WALLET',wallet);
+  console.log('USERID',userIdText);
 
+  const createWallet = async () => {
+   const response = await fetch('http://localhost:3000/createwallet', {
+     method: 'post', 
+     mode: 'cors', 
+     headers: {
+       "Content-Type": 'application/json'
+     }, 
+     body: JSON.stringify({
+      userid: userIdText
+     })
+   })
+   console.log(await response.json())
+  }
+  const walletContent = async () => {
+    const response = await fetch('http://localhost:3000/walletcontent', {
+      method: 'get', 
+      mode: 'cors', 
+      headers: {
+        "Content-Type": 'application/json'
+      }, 
+      body: JSON.stringify({
+       walletaddress: userIdText
+      })
+    })
+    console.log(await response.json())
+   }
+   const readWallets = async () => {
+    const response = await fetch('http://localhost:3000/readwallets', {
+      method: 'get', 
+      mode: 'cors', 
+      headers: {
+        "Content-Type": 'application/json'
+      }, 
+      body: JSON.stringify({
+       userid: userIdText
+      })
+    })
+    console.log(await response.json())
+   }
   const anchorWallet = useMemo(() => {
     if (
       !wallet ||
@@ -214,17 +275,87 @@ const Home = (props: HomeProps) => {
           )}
           {process.env.REACT_APP_CROSSMINT_ID && (
             <CrossmintPayButton
-                style={{ margin: "0 auto", width: "100%" }}
-                collectionTitle="<TITLE_FOR_YOUR_COLLECTION>"
-                collectionDescription="<DESCRIPTION_OF_YOUR_COLLECTION>"
-                collectionPhoto="<OPT_URL_TO_PHOTO_COVER>"
+                style={{ margin: "0 auto", width: "100%" }} 
+
+                  paymentMethod="ETH"
+                  
+                  
                 clientId={process.env.REACT_APP_CROSSMINT_ID}
                 environment={process.env.REACT_APP_SOLANA_NETWORK === "devnet" && process.env.REACT_APP_SOLANA_RPC_HOST === "https://api.devnet.solana.com" ? "staging" : ""}
             />
+            
+          )}
+
+{process.env.REACT_APP_CROSSMINT_ID && (
+            <CrossmintPayButton
+                style={{ margin: "0 auto", width: "100%" }} 
+
+                paymentMethod="SOL"
+                  
+                  
+                clientId={process.env.REACT_APP_CROSSMINT_ID}
+                environment={process.env.REACT_APP_SOLANA_NETWORK === "devnet" && process.env.REACT_APP_SOLANA_RPC_HOST === "https://api.devnet.solana.com" ? "staging" : ""}
+            />
+            
+          )}
+
+{process.env.REACT_APP_CROSSMINT_ID && (
+            <CrossmintPayButton
+                style={{ margin: "0 auto", width: "100%" }} 
+
+                paymentMethod="fiat"
+                  
+                  
+                clientId={process.env.REACT_APP_CROSSMINT_ID}
+                environment={process.env.REACT_APP_SOLANA_NETWORK === "devnet" && process.env.REACT_APP_SOLANA_RPC_HOST === "https://api.devnet.solana.com" ? "staging" : ""}
+            />
+            
           )}
         </Paper>
       </Container>
+      <Container maxWidth="xs" style={{ position: "relative" }}>
+        <TextField value={userIdText} label='UserID' variant='outlined' onChange={(event) => {
+        setUserIdText(event.target.value)
+        }}/>
+        <Button variant='outlined' onClick={() => {
+          createWallet()
+        }}>
+          Create Wallet
+        </Button>
+        </Container>
+      <Container maxWidth="xs" style={{ position: "relative" }}>
+        <TextField value={userIdText} label='UserID' variant='outlined' onChange={(event) => {
+        setUserIdText(event.target.value)
+        }}/>
+        <Button variant='outlined' onClick={() => {
+          createWallet()
+        }}>
+          Wallets Associated
+        </Button>
+        <h2>
+          wallet addresses
+        </h2>
+        {
+          mockwallets.map((item)=>{
+            return <Button onClick={()=> handlecontentfetch(item.name)}>
 
+              {item.name}
+            </Button> 
+          })
+        }
+        </Container>
+      <Container maxWidth="xs" style={{ position: "relative" }}>
+        <TextField value={userIdText} label='walletAddress' variant='outlined' onChange={(event) => {
+        setUserIdText(event.target.value)
+        }}/>
+        <Button variant='outlined' onClick={() => {
+          walletContent()
+        }}>
+          Wallet Content
+        </Button>
+
+      </Container>
+      
       <Snackbar
         open={alertState.open}
         autoHideDuration={6000}
@@ -238,6 +369,7 @@ const Home = (props: HomeProps) => {
         </Alert>
       </Snackbar>
     </Container>
+    
   );
 };
 
